@@ -1,0 +1,61 @@
+// src/components/TodoApp.js
+import React, { useState, useEffect } from 'react';
+
+const TodoApp = () => {
+  const [tasks, setTasks] = useState([]);
+  const [newTask, setNewTask] = useState('');
+
+  // Fetch tasks from backend
+  useEffect(() => {
+    const fetchTasks = async () => {
+      const response = await fetch('http://localhost:5000/tasks');
+      const data = await response.json();
+      setTasks(data);
+    };
+
+    fetchTasks();
+  }, []);
+
+  const handleAddTask = async () => {
+    const response = await fetch('http://localhost:5000/tasks', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ task: newTask }),
+    });
+    const addedTask = await response.json();
+    setTasks([...tasks, addedTask]);
+    setNewTask('');
+  };
+
+  const handleDeleteTask = async (id) => {
+    await fetch(`http://localhost:5000/tasks/${id}`, {
+      method: 'DELETE',
+    });
+    setTasks(tasks.filter((task) => task.id !== id));
+  };
+
+  return (
+    <div>
+      <h1>Todo List</h1>
+      <input
+        type="text"
+        value={newTask}
+        onChange={(e) => setNewTask(e.target.value)}
+        placeholder="Add a new task"
+      />
+      <button onClick={handleAddTask}>Add Task</button>
+      <ul>
+        {tasks.map((task) => (
+          <li key={task.id}>
+            {task.task}
+            <button onClick={() => handleDeleteTask(task.id)}>Delete</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default TodoApp;
